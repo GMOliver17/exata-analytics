@@ -1,0 +1,60 @@
+-- ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+CREATE OR REPLACE VIEW view_estoque AS
+SELECT
+    pr.EstoqueAtual,
+    pr.CodProduto,
+    pr.CodEmpresa
+FROM
+    produtosestoque pr
+LEFT JOIN produtos p ON p.Codigo = pr.CodProduto
+WHERE p.Inativo = 'N';
+
+-- ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+CREATE OR REPLACE VIEW view_estoque_entrada AS
+SELECT 
+    es.CodProduto, 
+    es.Data AS DataEntrada, 
+    es.Qtde AS QtdEntrada, 
+    es.TipoDoc, 
+    es.CodEmpresa
+FROM estoque es
+LEFT JOIN produtos p ON p.Codigo = es.CodProduto
+WHERE es.TipoDoc = 'NE' 
+  AND es.Data >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) 
+  AND p.Inativo = 'N';
+
+-- ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+CREATE OR REPLACE VIEW view_vendas_estoque_detalhe AS
+SELECT
+    v.Codigo AS CodVenda,
+    v.Data AS DataVenda,
+    vp.CodProduto,
+    p.Descricao AS Produto,
+    vp.Quantidade AS QtdVendida,
+    vp.ValorUnitario,
+    vp.ValorTotal,
+    v.DFEmitido,
+    v.CodEmpresa
+FROM vendasprodutos vp
+JOIN vendas v ON v.Codigo = vp.CodVenda
+JOIN produtos p ON p.Codigo = vp.CodProduto
+WHERE v.DFEmitido = 'S'
+AND v.Data >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+AND p.Inativo = 'N';
+
+-- ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+CREATE OR REPLACE VIEW view_vendas_vendedores AS
+SELECT 
+    CodCliente,
+    Data,
+    v.TotalProdutos,
+    v.ClienteNome,
+    v.ClienteEstado,
+    v.ClienteCodMunicipio,
+    v.ClienteApelido,
+    m.municipio,
+    v.CodEmpresa
+FROM vendas v
+JOIN municipios m ON v.ClienteCodMunicipio = m.codigo
+LEFT JOIN nfemitidas nf ON nf.Codigo = v.DfCodigo
+WHERE v.DfEmitido = 'S' AND nf.Situacao = 'AU';

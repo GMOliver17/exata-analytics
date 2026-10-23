@@ -1,0 +1,7 @@
+Instalação python e bibliotecas:
+
+Python: https://www.python.org/downloads
+
+CMD: pip install streamlit mysql-connector-python pandas plotly configparser
+
+arquivo .env variáveis de ambiente
